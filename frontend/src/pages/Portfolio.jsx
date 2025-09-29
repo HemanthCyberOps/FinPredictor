@@ -2,24 +2,55 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Card } from '../components/Cards'
 import { AllocationPieChart } from '../components/Charts'
+import { getCurrentUser } from '../lib/session'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8000'
-const DEMO_USER = 'demo-user-1'
-
-const demoAssets = [
-	{ id: '1', type: 'stock', symbol: 'AAPL', name: 'Apple', units: 10, buy_price: 150, current_price: 190 },
-	{ id: '2', type: 'mutual_fund', symbol: 'NIFTY50', name: 'Nifty 50 Index', units: 25, buy_price: 200, current_price: 230 },
-	{ id: '3', type: 'crypto', symbol: 'BTC', name: 'Bitcoin', units: 0.1, buy_price: 30000, current_price: 60000 },
-]
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8080'
 
 export default function Portfolio() {
-	const [assets, setAssets] = useState(demoAssets)
+	const user = getCurrentUser()
+	const userId = user?.id || 'demo-user-1'
+	const [assets, setAssets] = useState([])
+	const [form, setForm] = useState({ type: 'stock', symbol: '', name: '', units: 0, buy_price: 0 })
+	const [loading, setLoading] = useState(false)
 
-	useEffect(() => {
-		axios.get(`${API_BASE}/api/portfolio/${DEMO_USER}`).then((res) => {
-			if (res.data?.assets?.length) setAssets(res.data.assets)
-		}).catch(() => {})
-	}, [])
+	const load = async () => {
+		try {
+			const res = await axios.get(`${API_BASE}/api/portfolio/${userId}`)
+			setAssets(res.data?.assets || [])
+		} catch {
+			setAssets([])
+		}
+	}
+
+	useEffect(() => { load() }, [])
+
+	const onAdd = async (e) => {
+		e.preventDefault()
+		setLoading(true)
+		try {
+			await axios.post(`${API_BASE}/api/portfolio/${userId}/assets`, {
+				type: form.type,
+				symbol: form.symbol,
+				name: form.name,
+				units: Number(form.units),
+				buy_price: Number(form.buy_price),
+			})
+			setForm({ type: 'stock', symbol: '', name: '', units: 0, buy_price: 0 })
+			await load()
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	const onDelete = async (assetId) => {
+		setLoading(true)
+		try {
+			await axios.delete(`${API_BASE}/api/portfolio/${userId}/assets/${assetId}`)
+			await load()
+		} finally {
+			setLoading(false)
+		}
+	}
 
 	const allocation = [
 		{ name: 'Equity', value: 60 },
@@ -29,9 +60,27 @@ export default function Portfolio() {
 
 	return (
 		<div className="space-y-6">
+			<Card title="Add Asset">
+				<form onSubmit={onAdd} className="grid grid-cols-1 md:grid-cols-6 gap-2">
+					<select className="border rounded px-3 py-2" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
+						<option value="stock">Stock</option>
+						<option value="mutual_fund">Mutual Fund</option>
+						<option value="crypto">Crypto</option>
+						<option value="bond">Bond</option>
+						<option value="cash">Cash</option>
+					</select>
+					<input className="border rounded px-3 py-2" placeholder="Symbol" value={form.symbol} onChange={e => setForm({ ...form, symbol: e.target.value })} />
+					<input className="border rounded px-3 py-2" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+					<input className="border rounded px-3 py-2" type="number" step="any" placeholder="Units" value={form.units} onChange={e => setForm({ ...form, units: e.target.value })} />
+					<input className="border rounded px-3 py-2" type="number" step="any" placeholder="Buy Price" value={form.buy_price} onChange={e => setForm({ ...form, buy_price: e.target.value })} />
+					<button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
+				</form>
+			</Card>
+
 			<Card title="Asset Allocation (Demo)">
 				<AllocationPieChart data={allocation} />
 			</Card>
+
 			<Card title="Holdings">
 				<div className="overflow-x-auto">
 					<table className="min-w-full text-sm">
@@ -42,6 +91,7 @@ export default function Portfolio() {
 								<th>Units</th>
 								<th>Buy</th>
 								<th>Current</th>
+								<th></th>
 							</tr>
 						</thead>
 						<tbody>
@@ -52,6 +102,9 @@ export default function Portfolio() {
 									<td>{a.units}</td>
 									<td>{a.buy_price}</td>
 									<td>{a.current_price}</td>
+									<td>
+										<button disabled={loading} onClick={() => onDelete(a.id)} className="text-red-600">Delete</button>
+									</td>
 								</tr>
 							))}
 						</tbody>
