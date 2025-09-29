@@ -16,13 +16,18 @@ export default function Goals() {
 	const [goals, setGoals] = useState([])
 
 	const strategyToReturn = (s) => s === 'conservative' ? 0.08 : s === 'aggressive' ? 0.15 : 0.12
+	const riskToStrategy = (r) => r === 'low' ? 'conservative' : r === 'high' ? 'aggressive' : 'moderate'
 
 	const load = async () => {
 		const res = await axios.get(`${API_BASE}/api/goals/${userId}`).catch(() => ({ data: [] }))
 		setGoals(res.data || [])
 	}
 
-	useEffect(() => { load() }, [])
+	useEffect(() => {
+		// default strategy from user risk
+		if (user?.risk_profile) setStrategy(riskToStrategy(user.risk_profile))
+		load()
+	}, [])
 
 	const addGoal = async (e) => {
 		e.preventDefault()

@@ -24,7 +24,6 @@ export default function AIInsights() {
 		setMessages(prev => [...prev, newMsg])
 		setInput('')
 		try {
-			// Fetch minimal context
 			const [portfolioRes, goalsRes] = await Promise.all([
 				axios.get(`${API_BASE}/api/portfolio/${userId}`).catch(() => ({ data: { assets: [] } })),
 				axios.get(`${API_BASE}/api/goals/${userId}`).catch(() => ({ data: [] })),
@@ -34,9 +33,11 @@ export default function AIInsights() {
 				portfolio: portfolioRes.data || { assets: [] },
 				goals: goalsRes.data || [],
 			}
+			const contextHint = `Risk: ${user?.risk_profile || 'moderate'}; Monthly income: ${user?.monthly_income || 'n/a'}`
 			const res = await axios.post(`${API_BASE}/api/ai/predict`, payload)
 			const recs = res.data?.recommendations || []
-			setMessages(prev => [...prev, { role: 'assistant', content: recs.map(r => `${r.title}: ${r.detail}`).join('\n') || 'No insight' }])
+			const content = [`Context -> ${contextHint}`, ...recs.map(r => `${r.title}: ${r.detail}`)].join('\n')
+			setMessages(prev => [...prev, { role: 'assistant', content }])
 		} catch {
 			setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I could not fetch insights right now.' }])
 		}
