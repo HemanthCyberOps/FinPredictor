@@ -19,6 +19,7 @@ export default function Navbar() {
 					<NavLink to="/ai" className={linkClass}>AI Insights</NavLink>
 					{user ? (
 						<>
+							<NavLink to="/profile" className={linkClass}>Profile</NavLink>
 							<span className="text-sm text-gray-600 ml-2">{user.name}</span>
 							<button onClick={() => { clearCurrentUser(); window.location.reload(); }} className="ml-2 px-3 py-2 text-sm border rounded">
 								Logout

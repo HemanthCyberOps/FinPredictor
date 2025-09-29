@@ -12,6 +12,7 @@ export default function Portfolio() {
 	const [assets, setAssets] = useState([])
 	const [form, setForm] = useState({ type: 'stock', symbol: '', name: '', units: 0, buy_price: 0 })
 	const [loading, setLoading] = useState(false)
+	const [editId, setEditId] = useState(null)
 
 	const load = async () => {
 		try {
@@ -24,10 +25,13 @@ export default function Portfolio() {
 
 	useEffect(() => { load() }, [])
 
-	const onAdd = async (e) => {
+	const onAddOrSave = async (e) => {
 		e.preventDefault()
 		setLoading(true)
 		try {
+			if (editId) {
+				await axios.delete(`${API_BASE}/api/portfolio/${userId}/assets/${editId}`).catch(() => {})
+			}
 			await axios.post(`${API_BASE}/api/portfolio/${userId}/assets`, {
 				type: form.type,
 				symbol: form.symbol,
@@ -36,6 +40,7 @@ export default function Portfolio() {
 				buy_price: Number(form.buy_price),
 			})
 			setForm({ type: 'stock', symbol: '', name: '', units: 0, buy_price: 0 })
+			setEditId(null)
 			await load()
 		} finally {
 			setLoading(false)
@@ -52,6 +57,12 @@ export default function Portfolio() {
 		}
 	}
 
+	const onEdit = (a) => {
+		setForm({ type: a.type, symbol: a.symbol, name: a.name, units: a.units, buy_price: a.buy_price })
+		setEditId(a.id)
+		window.scrollTo({ top: 0, behavior: 'smooth' })
+	}
+
 	const allocation = [
 		{ name: 'Equity', value: 60 },
 		{ name: 'Debt', value: 30 },
@@ -60,8 +71,8 @@ export default function Portfolio() {
 
 	return (
 		<div className="space-y-6">
-			<Card title="Add Asset">
-				<form onSubmit={onAdd} className="grid grid-cols-1 md:grid-cols-6 gap-2">
+			<Card title={editId ? 'Edit Asset' : 'Add Asset'}>
+				<form onSubmit={onAddOrSave} className="grid grid-cols-1 md:grid-cols-6 gap-2">
 					<select className="border rounded px-3 py-2" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>
 						<option value="stock">Stock</option>
 						<option value="mutual_fund">Mutual Fund</option>
@@ -73,7 +84,7 @@ export default function Portfolio() {
 					<input className="border rounded px-3 py-2" placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
 					<input className="border rounded px-3 py-2" type="number" step="any" placeholder="Units" value={form.units} onChange={e => setForm({ ...form, units: e.target.value })} />
 					<input className="border rounded px-3 py-2" type="number" step="any" placeholder="Buy Price" value={form.buy_price} onChange={e => setForm({ ...form, buy_price: e.target.value })} />
-					<button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
+					<button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">{editId ? 'Save' : 'Add'}</button>
 				</form>
 			</Card>
 
@@ -102,7 +113,8 @@ export default function Portfolio() {
 									<td>{a.units}</td>
 									<td>{a.buy_price}</td>
 									<td>{a.current_price}</td>
-									<td>
+									<td className="space-x-3">
+										<button disabled={loading} onClick={() => onEdit(a)} className="text-blue-600">Edit</button>
 										<button disabled={loading} onClick={() => onDelete(a.id)} className="text-red-600">Delete</button>
 									</td>
 								</tr>
