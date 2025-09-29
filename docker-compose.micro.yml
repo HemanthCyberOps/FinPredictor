@@ -1,0 +1,57 @@
+version: '3.9'
+services:
+  users_service:
+    build:
+      context: .
+      dockerfile: services/users_service/Dockerfile
+    ports:
+      - "8001:8001"
+
+  portfolio_service:
+    build:
+      context: .
+      dockerfile: services/portfolio_service/Dockerfile
+    ports:
+      - "8002:8002"
+
+  goals_service:
+    build:
+      context: .
+      dockerfile: services/goals_service/Dockerfile
+    ports:
+      - "8003:8003"
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: services/ai_service/Dockerfile
+    ports:
+      - "8004:8004"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    environment:
+      - USERS_URL=http://users_service:8001
+      - PORTFOLIO_URL=http://portfolio_service:8002
+      - GOALS_URL=http://goals_service:8003
+      - AI_URL=http://ai_service:8004
+    ports:
+      - "8080:8080"
+    depends_on:
+      - users_service
+      - portfolio_service
+      - goals_service
+      - ai_service
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      - VITE_API_BASE=http://gateway:8080
+    ports:
+      - "5173:80"
+    depends_on:
+      - gateway
