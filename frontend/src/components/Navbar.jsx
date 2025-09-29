@@ -16,7 +16,7 @@ export default function Navbar() {
 					</NavLink>
 					<NavLink to="/portfolio" className={linkClass}>Portfolio</NavLink>
 					<NavLink to="/goals" className={linkClass}>Goals</NavLink>
-					<NavLink to="/ai" className={linkClass}>AI Insights</NavLink>
+					<NavLink to="/ai" className={linkClass}>Insights & Chat</NavLink>
 					{user ? (
 						<>
 							<NavLink to="/profile" className={linkClass}>Profile</NavLink>
@@ -26,10 +26,7 @@ export default function Navbar() {
 							</button>
 						</>
 					) : (
-						<>
-							<NavLink to="/login" className={linkClass}>Login</NavLink>
-							<NavLink to="/signup" className={linkClass}>Sign up</NavLink>
-						</>
+						<NavLink to="/login" className={linkClass}>Login / Sign up</NavLink>
 					)}
 				</nav>
 			</div>
