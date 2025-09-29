@@ -27,6 +27,12 @@ services:
       dockerfile: services/ai_service/Dockerfile
     ports:
       - "8004:8004"
+    environment:
+      - LLAMA_API_URL=${LLAMA_API_URL}
+      - LLAMA_MODEL=${LLAMA_MODEL}
+      - LLAMA_API_KEY=${LLAMA_API_KEY}
+      - CEREBRAS_API_URL=${CEREBRAS_API_URL}
+      - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
 
   gateway:
     build:

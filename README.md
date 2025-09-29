@@ -51,3 +51,26 @@ Configure via envs: `LLAMA_API_URL`, `LLAMA_MODEL`, `LLAMA_API_KEY`, `CEREBRAS_A
 - Replace AI placeholders with real API calls
 - Add auth UI and protected routes
 - Enhance charts with real time-series
+
+## Resources (Hackathon)
+- Cerebras
+  - Sign up for Cerebras Cloud
+  - Cerebras Documentation & Quickstart
+  - Video tutorial
+- Meta Llama
+  - Meta Llama Models Documentation
+  - Example Implementations
+  - Llama Cookbook (GitHub) - Recipes to help you build with Llama
+  - Build with Llama 4
+  - Llama Cookbook Highlights
+  - Examples of Llama use cases
+  - Meta Hackathon Workshop: LlamaCon Hackathon Workshop by Meta
+  - Learn about Llama 4: Unpack the Latest Llama 4 Herd
+  - The Llama Toolbox: A Collection of Practical Tools and Recipes
+  - Tailoring Llama for Your Needs: Fine-Tuning & Evaluation
+- Docker
+  - Docker Documentation
+  - MCP Catalog and Toolkit documentation
+  - MCP Gateway documentation
+  - Download Docker Desktop
+  - Video Tutorial
