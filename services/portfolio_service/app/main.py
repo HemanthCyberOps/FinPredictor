@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime, date
 import uuid
 
-app = FastAPI(title="FinPredictor Portfolio Service", version="0.4.0")
+app = FastAPI(title="FinPredictor Portfolio Service", version="0.5.0")
 
 class Asset(BaseModel):
 	id: str
@@ -136,3 +136,28 @@ async def delete_asset(user_id: str, asset_id: str):
 		raise HTTPException(status_code=404, detail="Asset not found")
 	del user_assets[asset_id]
 	return {"ok": True}
+
+# Simple projection using net return when available
+class ProjectionRequest(BaseModel):
+	starting_amount: float = 0
+	monthly_sip: float = 0
+	years: float = 1
+	expected_return: Optional[float] = None
+	expense_ratio: Optional[float] = None
+
+class ProjectionPoint(BaseModel):
+	month: int
+	value: float
+
+@app.post("/{user_id}/projection", response_model=List[ProjectionPoint])
+async def project_portfolio(user_id: str, payload: ProjectionRequest):
+	r = (payload.expected_return or 0.0) - (payload.expense_ratio or 0.0)
+	monthly_r = r / 12.0
+	n_months = max(int(round(payload.years * 12)), 0)
+	value = payload.starting_amount
+	points: List[ProjectionPoint] = []
+	for m in range(n_months + 1):
+		if m > 0:
+			value = value * (1 + monthly_r) + payload.monthly_sip
+		points.append(ProjectionPoint(month=m, value=round(value, 2)))
+	return points

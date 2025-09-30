@@ -33,6 +33,7 @@ services:
       - LLAMA_API_KEY=${LLAMA_API_KEY}
       - CEREBRAS_API_URL=${CEREBRAS_API_URL}
       - CEREBRAS_API_KEY=${CEREBRAS_API_KEY}
+      - CEREBRAS_MODEL=${CEREBRAS_MODEL}
 
   gateway:
     build:

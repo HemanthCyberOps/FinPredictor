@@ -1,0 +1,31 @@
+# Node and build artifacts
+node_modules
+**/node_modules
+**/.next
+**/dist
+**/build
+
+# Python caches
+**/__pycache__
+**/*.pyc
+**/*.pyo
+
+# Env and local config
+.env
+*.env
+.env.*
+
+# VCS and editor
+.git
+.gitignore
+**/.DS_Store
+**/*.swp
+
+# Temp and logs
+.tmp
+**/tmp*
+**/*.log
+*.log
+
+tmp_signup.json
+scripts/*.tmp

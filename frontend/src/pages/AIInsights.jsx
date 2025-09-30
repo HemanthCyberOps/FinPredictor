@@ -32,12 +32,13 @@ export default function AIInsights() {
 				axios.get(`${API_BASE}/api/portfolio/${userId}`).catch(() => ({ data: { assets: [] } })),
 				axios.get(`${API_BASE}/api/goals/${userId}`).catch(() => ({ data: [] })),
 			])
-			const payload = {
-				user_id: userId,
-				portfolio: portfolioRes.data || { assets: [] },
-				goals: goalsRes.data || [],
-				message: content,
-			}
+            const payload = {
+                user_id: userId,
+                portfolio: portfolioRes.data || { assets: [] },
+                goals: goalsRes.data || [],
+                message: content,
+                provider: 'cerebras',
+            }
 			const contextHint = `Risk: ${user?.risk_profile || 'moderate'}; Monthly income: ${user?.monthly_income || 'n/a'}`
 			const res = await axios.post(`${API_BASE}/api/ai/predict`, payload)
 			const recs = res.data?.recommendations || []
