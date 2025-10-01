@@ -12,6 +12,8 @@ export default function AIInsights() {
 	const [messages, setMessages] = useState([])
 	const [input, setInput] = useState('How should I adjust my SIP this year?')
 	const [loading, setLoading] = useState(false)
+	const [provider, setProvider] = useState('auto') // 'auto' | 'llama' | 'cerebras'
+	const [backendNote, setBackendNote] = useState('')
 
 	useEffect(() => {
 		axios.post(`${API_BASE}/api/ai/predict`, { user_id: userId })
@@ -32,16 +34,17 @@ export default function AIInsights() {
 				axios.get(`${API_BASE}/api/portfolio/${userId}`).catch(() => ({ data: { assets: [] } })),
 				axios.get(`${API_BASE}/api/goals/${userId}`).catch(() => ({ data: [] })),
 			])
-            const payload = {
+			const payload = {
                 user_id: userId,
                 portfolio: portfolioRes.data || { assets: [] },
                 goals: goalsRes.data || [],
                 message: content,
-                provider: 'cerebras',
+				...(provider !== 'auto' ? { provider } : {}),
             }
 			const contextHint = `Risk: ${user?.risk_profile || 'moderate'}; Monthly income: ${user?.monthly_income || 'n/a'}`
 			const res = await axios.post(`${API_BASE}/api/ai/predict`, payload)
 			const recs = res.data?.recommendations || []
+			setBackendNote(res.data?.note || '')
 			const answer = recs.length > 0
 				? recs.map(r => `${r.title}: ${r.detail}`).join('\n')
 				: 'No new recommendations right now.'
@@ -83,11 +86,19 @@ export default function AIInsights() {
 								</div>
 							))}
 						</div>
-						<form className="flex gap-2" onSubmit={send}>
-							<input className="flex-1 border rounded px-3 py-2" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask about SIPs, risk, allocations..." />
-							<button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">
-								{loading ? 'Sending…' : 'Send'}
-							</button>
+						<form className="flex flex-col gap-2" onSubmit={send}>
+							<div className="flex items-center gap-2">
+								<select className="border rounded px-2 py-2 text-sm" value={provider} onChange={e => setProvider(e.target.value)}>
+									<option value="auto">Provider: Auto</option>
+									<option value="llama">Provider: Llama</option>
+									<option value="cerebras">Provider: Cerebras</option>
+								</select>
+								<input className="flex-1 border rounded px-3 py-2" value={input} onChange={e => setInput(e.target.value)} placeholder="Ask about SIPs, risk, allocations..." />
+								<button disabled={loading} className="bg-blue-600 text-white px-4 py-2 rounded">
+									{loading ? 'Sending…' : 'Send'}
+								</button>
+							</div>
+							{backendNote && <div className="text-xs text-gray-600">Status: {backendNote}</div>}
 						</form>
 						<div className="flex flex-wrap gap-2 text-sm">
 							<button disabled={loading} onClick={() => send(null, 'Check Portfolio Health')} className="px-3 py-1 border rounded">Check Portfolio Health</button>

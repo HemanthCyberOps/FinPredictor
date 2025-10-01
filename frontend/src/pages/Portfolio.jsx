@@ -280,7 +280,24 @@ export default function Portfolio() {
 		} finally { setLoading(false) }
 	}
 
-	const allocation = useMemo(() => ([{ name: 'Equity', value: 60 }, { name: 'Debt', value: 30 }, { name: 'Cash', value: 10 }]), [])
+	const allocation = useMemo(() => {
+		// Aggregate total value by asset type using current holdings
+		const totalsByType = assets.reduce((acc, a) => {
+			const type = (a.type || 'other')
+			const units = Number(a.units || 0)
+			const current = Number(a.current_price || 0)
+			const value = units > 0 ? units * current : current
+			acc[type] = (acc[type] || 0) + (isNaN(value) ? 0 : value)
+			return acc
+		}, {})
+		// Transform into chart-friendly array, capitalizing labels
+		const toTitle = (t) => t.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+		const data = Object.entries(totalsByType)
+			.filter(([, v]) => v > 0)
+			.map(([k, v]) => ({ name: toTitle(k), value: Math.round(v) }))
+		// Fallback to an empty state if no assets
+		return data.length > 0 ? data : [{ name: 'No Assets', value: 1 }]
+	}, [assets])
 
 	return (
 		<div className="space-y-6">
@@ -304,8 +321,7 @@ export default function Portfolio() {
 				</form>
 			</Card>
 
-			<Card title="Asset Allocation (Demo)">
-				<p className="text-xs text-gray-500 mb-2">This is sample allocation for demo. Your real allocation will appear after analytics.</p>
+			<Card title="Asset Allocation">
 				<AllocationPieChart data={allocation} />
 			</Card>
 
